@@ -1,0 +1,39 @@
+version: "3.1"
+services:
+    db:
+      image: mariadb
+      container_name: db
+      environment:
+        MYSQL_ROOT_PASSWORD: edurogue
+        MYSQL_DATABASE: edurogue
+        MYSQL_USER: edurogue
+        MYSQL_PASSWORD: edurogue
+      network_mode: "host"
+      command: --bind-address=127.0.0.1
+      volumes:
+        - data:/var/lib/mysql
+        - ./edurogue/edurogue_db.sql:/docker-entrypoint-initdb.d/edurogue_db.sql
+
+    edurogue:
+      image: vbarahona/edurogue:latest
+      container_name: edurogue
+      privileged: true
+      environment:
+        MYSQL_DATABASE: "edurogue"
+        MYSQL_USER: "edurogue"
+        MYSQL_PASSWORD: "edurogue"
+        WIFI_DEV: "wlan1"
+        TTL_TO_RETEST: "15"
+        MAX_RETRIES: "5"
+        ANONIMIZE: "0"
+        RESET_ON_INIT: "0"
+        TELEGRAM_TOKEN: "YOUR TOKEN BOT"
+        TELEGRAM_CHAT_LOG_ID: ""
+        TELEGRAM_CHAT_DEBUG_ID: ""
+      network_mode: "host"
+      volumes:
+        - logs:/opt/edurogue/log
+
+volumes:
+  data:
+  logs:

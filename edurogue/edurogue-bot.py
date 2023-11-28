@@ -157,7 +157,7 @@ eduroguedb = Database()
 
 
 def main():
-    TOKEN = "2096185753:AAEZOy9tO76l54n3qV0Ta7j1cIW_w4YEoUM"
+    TOKEN = ""
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 

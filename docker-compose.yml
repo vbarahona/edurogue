@@ -24,7 +24,7 @@ services:
         MYSQL_PASSWORD: "edurogue"
         WIFI_DEV: "wlan1"
         TTL_TO_RETEST: "15"
-        MAX_RETRIES: "5"
+        MAX_RETRIES: "2"
         ANONIMIZE: "0"
         RESET_ON_INIT: "0"
         TELEGRAM_TOKEN: "YOUR TOKEN BOT"

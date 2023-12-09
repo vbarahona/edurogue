@@ -7,6 +7,7 @@ import time
 import urllib.request
 import logging
 import socket
+import json
 from urllib.error import HTTPError, URLError
 from socket import timeout
 
@@ -26,12 +27,16 @@ def read_config():
             'DBNAME': os.environ["MYSQL_DATABASE"]
         },
         'TELEGRAM': {
+            'ENABLE': 0,
             'TOKEN': os.environ["TELEGRAM_TOKEN"],
             'CHATBOTID': os.environ["TELEGRAM_CHAT_LOG_ID"],
             'CHATBOTLOGID': os.environ["TELEGRAM_CHAT_DEBUG_ID"]
         }
     }
-    print(conf)
+    if is_valid_telegram_bot_token(conf['TELEGRAM']['TOKEN']):
+        conf['TELEGRAM']['ENABLE'] = 1
+    else:
+        conf['TELEGRAM']['ENABLE'] = 0
     return conf
 
 class Database:
@@ -212,6 +217,9 @@ def expire_devs():
         telegram_log_message(f"{d['user']} - {d['device']}: unlisted for re-testing")
 
 def telegram_log_message(log):
+    logger.info(log)
+    if conf['TELEGRAM']['ENABLE'] == 0:
+        return
     msg = log.replace(" ", "+")
     url = 'https://api.telegram.org/bot'+conf['TELEGRAM']['TOKEN']+'/sendMessage?chat_id='+conf['TELEGRAM']['CHATBOTLOGID']+'&text=' + msg
     try:
@@ -233,7 +241,10 @@ def telegram_message(device, user, status):
     elif status == "GOODY":
         msg = "GOODY:+" + device
     elif status == "PROB":
-        msg = "~GOODY" + device
+        msg = "~GOODY:+" + device
+    logger.info(msg)
+    if conf['TELEGRAM']['ENABLE'] == 0:
+        return
     url = 'https://api.telegram.org/bot' + conf['TELEGRAM']['TOKEN'] + '/sendMessage?chat_id=' + conf['TELEGRAM']['CHATBOTID'] + '&text=' + msg
     try:
         if check_name_resolution("api.telegram.org", 443) == 0:
@@ -245,6 +256,28 @@ def telegram_message(device, user, status):
         logger.warning('socket timed out - URL %s', url)
     else:
         return
+
+def is_valid_telegram_bot_token(token):
+    # If token has spaces is invalid
+    if ' ' in token:
+        logger.warning("Configured telegram bot token is invalid. Logging only to console.")
+        return False
+    # URL for verify Telegram token bot
+    api_url = f'https://api.telegram.org/bot{token}/getMe'
+    try:
+        # Request
+        with urllib.request.urlopen(api_url) as response:
+            data = json.load(response)
+            # Verify if request is ok or not
+            if data.get("ok", False) and data.get("result"):
+                logger.info("Telegram bot token is valid. Logging to Telegram and console.")
+                return True
+            else:
+                logger.warning("Configured telegram bot token is invalid. Logging only to console.")
+                return False
+    except urllib.error.URLError as e:
+        print(f"An error occurred while checking the Telegram bot token: {e}")
+        return False
 
 def check_name_resolution(host, port):
     dns = 0
@@ -373,10 +406,10 @@ def init_log_console():
 # Global vars. Don't touch if don't know what are you doing
 bad_user = "user"
 
-# Read conf
-conf = read_config()
 # Init logging
 logger = init_log_console()
+# Read conf
+conf = read_config()
 # Init DB link
 eduroguedb = Database()
 

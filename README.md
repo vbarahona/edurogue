@@ -1,9 +1,9 @@
 # Edurogue
 
 ## What is Edurogue
-Edurogue is a tool designed for Eduroam Wi-Fi infrastructure administrators. Helps to identify misconfigured clients vulnerable to a Man-in-the-Middle (MitM) attack that could lead to the theft of their credentials.
+Edurogue is a tool designed for administrators of Eduroam wifi infrastructures to identify misconfigured clients susceptible to becoming victims of a Man-in-the-Middle (MitM) attack, potentially leading to the theft of their credentials.
 
-The configuration problem lies in the client not being set to trust only the SSL certificate of its organization's radius server. If the client does not verify the validity of the radius server's SSL certificate, it will deliver credentials to any radius server without ensuring it is the true one.
+The configuration issue arises when the client is not set to trust only the SSL certificate of its organization's radius server. If the client fails to verify the validity of the radius server's SSL certificate, it will transmit credentials to any radius server without ensuring it is the authentic one.
 
 ## How does Edurogue work?
 Edurogue sets up a rogueAP and the necessary services (radius+self-signed certificate) to mimic the Eduroam infrastructure. It will patiently wait for clients within its range to connect to verify them.

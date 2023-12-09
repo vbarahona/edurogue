@@ -29,6 +29,7 @@ RUN dpkg -i /hostapd-wpe_2.9+git20190816-0kali2_$TARGETARCH.deb && \
 
 # Install edurogue
 ADD edurogue/edurogue.py /opt/edurogue/bin
+ADD edurogue/edurogue-mgr.py /opt/edurogue/bin
 
 # Launch it
 ENTRYPOINT ["python3", "/opt/edurogue/bin/edurogue.py"]

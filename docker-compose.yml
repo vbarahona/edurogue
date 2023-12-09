@@ -28,8 +28,8 @@ services:
         ANONIMIZE: "0"
         RESET_ON_INIT: "0"
         TELEGRAM_TOKEN: "YOUR TOKEN BOT"
-        TELEGRAM_CHAT_LOG_ID: ""
-        TELEGRAM_CHAT_DEBUG_ID: ""
+        TELEGRAM_CHAT_LOG_ID: "YOUR CHAT LOG ID"
+        TELEGRAM_CHAT_DEBUG_ID: "YOUR CHAT DEBUG ID"
       network_mode: "host"
       volumes:
         - logs:/opt/edurogue/log

@@ -85,4 +85,61 @@ Edit docker-compose.yml and configure the environment variables (all values must
 ```commandline
 sudo docker-compose up -d
 ```
-Check the Telegram channels to see the status of Edurogue.
+### Logs
+
+#### Logs to stdout
+Edurogue will send all its logs to stdout. You can check them using the command
+
+```sudo docker logs -f edurogue```
+
+#### Telegram Logs Integration (Optional)
+
+If Edurogue is running on a machine with an internet connection, it is recommended to configure integration with Telegram. This allows receiving Edurogue logs through 2 Telegram channels:
+
+* TELEGRAM_CHAT_LOG: Will send the result of each evaluated device.
+* TELEGRAM_CHAT_DEBUG: Will send logs about the operation of Edurogue. Used to troubleshoot issues; once Edurogue is operational, it is safe to ignore this information.
+
+To configure Telegram Logs in Edurogue, you need configure 3 variables in docker-compose.yml:
+* TELEGRAM_TOKEN
+* TELEGRAM_CHAT_LOG_ID
+* TELEGRAM_CHAT_DEBUG_ID
+
+You'll need to create a Telegram bot. To set up a new bot, you will need to talk to BotFather. No, he’s not a person – he’s also a bot, and he's the boss of all the Telegram bots.
+* Search for @botfather in Telegram
+* Start a conversation with BotFather by clicking on the Start button.
+* Type /newbot, and follow the prompts to set up a new bot. The BotFather will give you a token that you will use to authenticate your bot and grant it access to the Telegram API. It will be you TELEGRAM_TOKEN in Edurogue.
+* When creating a new bot, by default, users are restricted from adding it to a group. To be able to add it, you must change the permissions in "Bot Settings/Allow Groups" and select "Turn groups on".
+* Add you bot to a 2 diferent chat groups one for log and one for debug. You can use any name for them.
+* Don't forget restore the bot restriction of let user adding it to groups in BotFather "Bot Settings/Allow Groups"
+* Now you need to look for the IDs of the 2 groups that you created before where your bot is included. To get the ID of a Telegram group, you can follow these steps:
+  * Open Telegram Web on your browser.
+  * Find the group you want to get the ID of.
+  * Look at the URL of the page. The ID of the group will be the numbers after the last dash (-).
+
+Finally, fill that info in your docker-compose.yml and deploy Edurogue
+```commandline
+sudo docker-compose up -d
+```
+## Usage
+After Edurogue is running you can look for activity in stdout logs or, if configured, in Telegram groups.
+
+Each device that connect to Edurogue will be tested and depending on their config stored as:
+  * BADLY: Poorly configured and vulnerable device.
+  * GOODY: Well-configured device.
+  * ~GOODY: Probably well-configured device.
+
+There is a basic management app to access to info stored in Edurogue. To run it:
+```commandline
+sudo docker exec -it edurogue python3 /opt/edurogue/bin/edurogue-mgr.py
+```
+You will get next menu:
+```commandline
+1. Show BADLY devices
+2. Look for user
+3. Look for device
+4. Show stats
+5. Check Telegram token
+6. Exit
+Choose option (1-5):
+```
+Just select the number and hit enter. Options are pretty obvious.

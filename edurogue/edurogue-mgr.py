@@ -1,6 +1,7 @@
 import pymysql
 import os
 import urllib.request
+import urllib.error
 import json
 
 def read_config():
@@ -28,10 +29,9 @@ def read_config():
 
 class Database:
     def __init__(self):
-        self.con = pymysql.connect(host=conf['DB']['DBHOST'], user=conf['DB']['DBUSER'], \
-                                   password=conf['DB']['DBPASSWD'], db=conf['DB']['DBNAME'], \
-                                   cursorclass=pymysql.cursors.
-                                   DictCursor)
+        self.con = pymysql.connect(host=conf['DB']['DBHOST'], user=conf['DB']['DBUSER'],
+                                   password=conf['DB']['DBPASSWD'], db=conf['DB']['DBNAME'],
+                                   cursorclass=pymysql.cursors.DictCursor)
         self.cur = self.con.cursor()
 
     def get_badlys(self):
@@ -65,9 +65,8 @@ class Database:
     def get_all(self):
         sql = "SELECT device AS c FROM devices"
         self.cur.execute(sql)
-        result = self.cur.fetchall()
+        #self.cur.fetchall()
         numrows = self.cur.rowcount
-
         return numrows
 
 def userbadlys():

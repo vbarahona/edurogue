@@ -405,7 +405,8 @@ def init_log_console():
 
 # Global vars. Don't touch if don't know what are you doing
 bad_user = "user"
-
+# Wait 5secs to allow DB gets ready
+time.sleep(5)
 # Init logging
 logger = init_log_console()
 # Read conf

@@ -153,7 +153,7 @@ eduroguedb = Database()
 def main():
     while True:
         show_menu()
-        choice = input("Choose option (1-5): ")
+        choice = input("Choose option (1-6): ")
         if choice == '1':
             print("Printing badly devices.")
             userbadlys()

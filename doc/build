@@ -1,0 +1,2 @@
+https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/
+docker buildx build --push --platform linux/amd64,linux/arm64 --tag vbarahona/edurogue:1.0 --tag vbarahona/edurogue:latest .

@@ -3,6 +3,7 @@ import os
 import urllib.request
 import urllib.error
 import json
+import time
 
 def read_config():
     conf = {
@@ -35,86 +36,138 @@ class Database:
         self.cur = self.con.cursor()
 
     def get_badlys(self):
-        sql = "SELECT timestamp,device,user FROM devices WHERE status = 1"
+        sql = "SELECT timestamp,device,user,status FROM devices WHERE status = 1"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         numrows = self.cur.rowcount
         return result,numrows
 
     def lookdevice(self,mac):
-        sql = "SELECT timestamp,device,user FROM devices WHERE device = %s"
+        sql = "SELECT timestamp,device,user,status FROM devices WHERE device = %s"
         self.cur.execute(sql,mac)
         result = self.cur.fetchall()
         numrows = self.cur.rowcount
         return result,numrows
 
     def lookuser(self,user):
-        sql = "SELECT timestamp,device,user FROM devices WHERE user = %s"
+        sql = "SELECT timestamp,device,user,status FROM devices WHERE user = %s"
         self.cur.execute(sql,user)
         result = self.cur.fetchall()
         numrows = self.cur.rowcount
         return result,numrows
 
     def get_goodys(self):
-        sql = "SELECT timestamp,device FROM devices WHERE status = 0 OR status = 2"
+        sql = "SELECT timestamp,device,user,status FROM devices WHERE status = 0 OR status = 2"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         numrows = self.cur.rowcount
         return result,numrows
 
     def get_all(self):
-        sql = "SELECT device AS c FROM devices"
+        sql = "SELECT timestamp,device,user,status FROM devices"
         self.cur.execute(sql)
-        #self.cur.fetchall()
+        result = self.cur.fetchall()
         numrows = self.cur.rowcount
-        return numrows
+        return result,numrows
+
+    def get_last(self,num):
+        sql = "SELECT timestamp,device,user,status FROM devices ORDER BY timestamp DESC LIMIT %s"
+        self.cur.execute(sql,int(num))
+        result = self.cur.fetchall()
+        numrows = self.cur.rowcount
+        return result,numrows
+
+def printstatus(num):
+    if num == 0:
+        return "GOODY"
+    elif num == 1:
+        return "BADLY"
+    elif num == 2:
+        return "~GOODY"
+    elif num == 4:
+        return "BADLY"
+    elif num == 5:
+        return "GOODY"
 
 def userbadlys():
     badlys,numbadys = eduroguedb.get_badlys()
-    print("\nTimestamp \t\t\t Device \t User")
-    print("-----------------------------------------------------------")
-    for b in badlys:
-        print(f"{b['timestamp']} \t {b['device']} \t {b['user']}")
-    print("\n")
+    printdevtable(badlys)
 
 def lookdevice(mac):
     device,num = eduroguedb.lookdevice(mac)
     if num >= 1:
         print(f"\nDevice {mac} found {num} times")
-        print("Timestamp \t\t\t Device \t User")
-        print("-------------------------------------------------------------")
-        for d in device:
-            print(f"{d['timestamp']} \t {d['device']} \t {d['user']}")
+        printdevtable(device)
+    else:
+        print(f"\nDevice {mac} not found.")
         print("\n")
+        input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
+
+def listall():
+    devices,num = eduroguedb.get_all()
+    if num >= 1:
+        print(f"\nList of tested devices.")
+        printdevtable(devices)
+    else:
+        print(f"\nDevice list is empty.")
+        print("\n")
+        input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
+
+def listlast(num):
+    if str(num).isdigit() == False:
+        print(f"El valor debe ser un numero entero")
+        time.sleep(2)
+        return False
+    devices,num = eduroguedb.get_last(num)
+    if num >= 1:
+        print(f"\nList of last {num} tested devices.")
+        printdevtable(devices)
+    else:
+        print(f"\nDevice list is empty.")
+        print("\n")
+        input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
 
 def stats():
     goodys,numgoodys = eduroguedb.get_goodys()
     badys,numbadys = eduroguedb.get_badlys()
-    totaldevs = eduroguedb.get_all()
+    devices,totaldevs = eduroguedb.get_all()
     percent_numgoodys = round((numgoodys/totaldevs)*100,1)
     percent_numbadlys = round((numbadys / totaldevs) * 100, 1)
     print(f"\nEdurogue stats\n----------------------")
     print(f"Badlys: {numbadys} ({percent_numbadlys}%)")
     print(f"Goodys: {numgoodys} ({percent_numgoodys}%)")
     print(f"Total Devices Tested: {totaldevs}\n")
+    print("\n")
+    input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
+
+def printdevtable(devices):
+    print("Timestamp \t\tStatus \t Device \t\t User")
+    print("---------------------------------------------------------------------------")
+    for d in devices:
+        status = printstatus(d['status'])
+        print(f"{d['timestamp']}\t{status} \t {d['device']} \t {d['user']}")
+    print("\n")
+    input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
 
 def lookforuser(username):
     devices,numdevs = eduroguedb.lookuser(username)
     if numdevs >= 1:
         print(f"\nUser {username} found in {numdevs} devices")
-        print("Timestamp \t\t\t Device \t User")
-        print("-------------------------------------------------------------")
-        for d in devices:
-            print(f"{d['timestamp']} \t {d['device']} \t {d['user']}")
+        printdevtable(devices)
+    else:
+        print(f"\nUser {username} not found.")
         print("\n")
+        input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
 
 def check_token(token):
     # If token has spaces is invalid
     if ' ' in token:
         print(f"------------------------------------------------------------")
-        print(f"|Configured telegram bot token has spaces and is invalid.  |")
-        print(f"|Edurogue will Log only to console.                        |")
+        print(f"|{bcolors.FAIL}Configured telegram bot token has spaces and is invalid.{bcolors.ENDC}  |")
+        print(f"|{bcolors.FAIL}Edurogue will Log only to console.{bcolors.ENDC}                        |")
         print(f"------------------------------------------------------------\n")
+        print("\n")
+        input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
         return False
     # URL for verify Telegram token bot
     api_url = f'https://api.telegram.org/bot{token}/getMe'
@@ -128,33 +181,52 @@ def check_token(token):
                 print(f"|Telegram bot token is valid.              |")
                 print(f"|Edurogue will log to Telegram and console.|")
                 print(f"--------------------------------------------\n")
+                print("\n")
+                input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
                 return True
             else:
                 print(f"--------------------------------------------")
-                print(f"|Configured telegram bot token is invalid. |")
-                print(f"|Edurogue will Log only to console.        |")
+                print(f"|{bcolors.FAIL}Configured telegram bot token is invalid. {bcolors.ENDC}|")
+                print(f"|{bcolors.FAIL}Edurogue will Log only to console. {bcolors.ENDC}       |")
                 print(f"--------------------------------------------\n")
+                print("\n")
+                input(f"{bcolors.WARNING}Press Enter to return to the Main Menu.{bcolors.ENDC}")
                 return False
     except urllib.error.URLError as e:
         print(f"An error occurred while checking the Telegram bot token: {e}")
         return False
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 def show_menu():
-    print("1. Show BADLY devices")
-    print("2. Look for user")
-    print("3. Look for device")
-    print("4. Show stats")
-    print("5. Check Telegram token")
-    print("6. Exit")
+    print(f"{bcolors.HEADER}Edurogue Main Menu")
+    print(f"{bcolors.OKGREEN}1. List BADLY devices")
+    print(f"2. Look for user")
+    print(f"3. Look for device")
+    print(f"4. List last N tested devices")
+    print(f"5. List all tested devices")
+    print(f"6. Show general stats")
+    print(f"7. Check Telegram token")
+    print(f"\n")
+    print(f"{bcolors.WARNING}0. Exit{bcolors.ENDC}")
 
 conf = read_config()
 eduroguedb = Database()
 def main():
     while True:
+        os.system("clear")
         show_menu()
-        choice = input("Choose option (1-6): ")
+        choice = input("Choose option (1-7): ")
         if choice == '1':
-            print("Printing badly devices.")
             userbadlys()
         elif choice == '2':
             user = input("Enter username: ")
@@ -162,17 +234,21 @@ def main():
         elif choice == '3':
             mac = input("Enter device mac address: ")
             lookdevice(mac)
-        elif choice == '4':
-            print("Show Stats.")
-            stats()
+        elif choice == ('4'):
+            num = input("Number of devices to list:")
+            listlast(num)
         elif choice == '5':
-            print("\nCheck Telegram Token.")
-            check_token(conf['TELEGRAM']['TOKEN'])
+            listall()
         elif choice == '6':
-            print("Saliendo del programa. ¡Hasta luego!")
+            stats()
+        elif choice == '7':
+            check_token(conf['TELEGRAM']['TOKEN'])
+        elif choice == '0':
+            print("Exiting from Edurogue Management. See you later!")
             break
         else:
-            print("Opción no válida. Por favor, elige una opción válida.")
+            print(f"{bcolors.FAIL}Invalid option. Please choose a valid one.{bcolors.ENDC}")
+            time.sleep(2)
 
         #input("Presiona Enter para volver al menú.")
 

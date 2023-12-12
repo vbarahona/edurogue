@@ -18,12 +18,6 @@ jobs:
         uses: crazy-max/ghaction-docker-buildx@v1
         with:
           version: latest
-      - name: build the image
-        run: |
-          docker buildx build \
-          --tag vbarahona/edurogue:${{ steps.read_version.outputs.version }} \
-          --tag vbarahona/edurogue:latest \
-          --platform linux/amd64,linux/arm64 .
       - name: login to docker hub
         run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
       - name: build the image
